@@ -42,8 +42,6 @@ This matches the weighting the platform applies internally, so the allocation is
 ### Install and run
 
 ```bash
-git clone https://github.com/your-org/ibm-logs-cost-correlator.git
-cd ibm-logs-cost-correlator
 npm install
 npm run dev          # opens http://localhost:3000
 ```
@@ -102,8 +100,6 @@ ibm-logs-cost-correlator/
 │       ├── csvParser.js         # CSV parsing and column detection
 │       ├── format.js            # fmt, fmtUSD, fmtGB helpers
 │       └── theme.js             # THEME tokens, PRIORITY_COLORS, UNIT_WEIGHTS
-├── data/
-│   └── samples/                 # Example CSVs for testing (real exports go here)
 ├── public/
 │   └── favicon.svg
 ├── index.html
@@ -113,43 +109,9 @@ ibm-logs-cost-correlator/
 └── README.md
 ```
 
----
-
-## Dashboard tabs
-
-| Tab      | What it shows                                                    |
-|----------|------------------------------------------------------------------|
-| Overview | GB bar chart, priority pie chart, full cost-allocation table     |
-| By App   | Per-application (or subsystem) cards with priority breakdowns    |
-| Priority | GB and units by tier, unit-multiplier detail table               |
-| Timeline | Daily GB and units trend lines *(only shown when CSV has dates)* |
-
----
-
 ## All data stays in your browser
 
 No data is uploaded to any server. CSV parsing and all calculations run entirely in the browser via [PapaParse](https://www.papaparse.com/) and React.
-
----
-
-## Tech stack
-
-| Library    | Purpose                        |
-|------------|--------------------------------|
-| React 18   | UI framework                   |
-| Vite 5     | Dev server and bundler         |
-| Recharts   | Bar, pie, and line charts      |
-| PapaParse  | CSV parsing                    |
-
----
-
-## Contributing
-
-1. Fork the repository and create a feature branch.
-2. Run `npm run lint` and `npm run format` before committing.
-3. Open a pull request describing the change and the problem it solves.
-
----
 
 ## License
 

@@ -20,13 +20,8 @@ import { useMemo } from "react";
  * }}
  */
 export function useSummary({ rows, groupBy, totalCost }) {
-  return useMemo(() => {
-    // Re-derive inside the memo so every keystroke on the cost input
-    // triggers a recompute. totalCost (state string) is in the dep array
-    // rather than the derived `cost` number to avoid float-equality misses
-    // (e.g. "100." and "100" both parse to 100 but are different strings).
-    const resolvedCost = Number(totalCost) || 0;
-
+  // Memo A: structural aggregation — stable while user types cost.
+  const { totalGB, totalUnits, rawGroups } = useMemo(() => {
     const totalGB    = rows.reduce((s, r) => s + r.gb, 0);
     const totalUnits = rows.reduce((s, r) => s + r.units, 0);
 
@@ -44,17 +39,29 @@ export function useSummary({ rows, groupBy, totalCost }) {
         (map[key].byPriority[r.priority] || 0) + r.gb;
     }
 
-    const groups = Object.values(map)
+    const rawGroups = Object.values(map)
       .sort((a, b) => b.gb - a.gb)
       .map((g) => ({
         ...g,
         gbShare:   totalGB    ? g.gb    / totalGB    : 0,
         unitShare: totalUnits ? g.units / totalUnits : 0,
-        cost:      totalUnits ? (g.units / totalUnits) * resolvedCost : 0,
       }));
 
-    return { totalGB, totalUnits, groups };
-  }, [rows, groupBy, totalCost]);
+    return { totalGB, totalUnits, rawGroups };
+  }, [rows, groupBy]);
+
+  // Memo B: cost allocation — only reruns on cost changes, not on rows/groupBy.
+  // totalCost (state string) is the dep rather than the derived number to avoid
+  // float-equality misses (e.g. "100." and "100" both parse to 100).
+  const groups = useMemo(() => {
+    const resolvedCost = Number(totalCost) || 0;
+    return rawGroups.map((g) => ({
+      ...g,
+      cost: totalUnits ? (g.units / totalUnits) * resolvedCost : 0,
+    }));
+  }, [rawGroups, totalUnits, totalCost]);
+
+  return { totalGB, totalUnits, groups };
 }
 
 /**

@@ -2,35 +2,6 @@
 
 React + Vite SPA that correlates IBM Cloud Logs data-usage CSV exports with monthly invoice costs. No backend. All logic runs in the browser.
 
-## Commands
-
-```bash
-npm run dev        # Dev server on http://localhost:3000 (auto-opens browser)
-npm run build      # Production build → dist/
-npm run preview    # Serve dist/ locally
-npm run lint       # ESLint — must pass before committing (max-warnings 0)
-npm run lint:fix   # Auto-fix lint errors
-npm run format     # Prettier over src/
-```
-
-## Architecture
-
-```
-src/
-  App.jsx              # Root — owns all state (rows, totalCost, tab, groupBy)
-  main.jsx             # React entry point
-  components/
-    DropZone.jsx        # File upload (drag-and-drop + click-to-browse)
-    Primitives.jsx      # Card, Pill, Stat, ChartTip — no logic
-    Tabs.jsx            # OverviewTab, ByAppTab, PriorityTab, TimelineTab
-  hooks/
-    useSummary.js       # All derived data: useSummary, usePriorityBreakdown, useTimeSeries
-  lib/
-    csvParser.js        # parseUsageCSV — fuzzy column detection via normalizeHeader
-    format.js           # fmt, fmtUSD, fmtGB
-    theme.js            # THEME tokens, PRIORITY_COLORS, UNIT_WEIGHTS
-```
-
 ## Key conventions
 
 - **State lives only in App.jsx.** Components receive data as props; hooks receive raw state.
@@ -53,8 +24,6 @@ src/
 
 The parser (`src/lib/csvParser.js`) is tolerant of column-name variations. It normalises headers to `snake_case` and tries multiple candidate names per field. When adding new candidate names, add them to the `detectColumn` call arrays in `parseUsageCSV`, not as special cases in the map loop.
 
-A reference sample is at `data/samples/april-2025-usage.csv`.
-
 ## Adding a new tab
 
 1. Add the tab component to `src/components/Tabs.jsx`.
@@ -68,3 +37,12 @@ A reference sample is at `data/samples/april-2025-usage.csv`.
 - Do not add `type="number"` inputs for cost or any numeric field (see key conventions above).
 - Do not put business logic in components — keep it in hooks or lib files.
 - Do not change `UNIT_WEIGHTS` values without a reference to updated IBM Cloud Logs pricing documentation.
+
+## Dashboard tabs
+
+| Tab      | What it shows                                                    |
+|----------|------------------------------------------------------------------|
+| Overview | GB bar chart, priority pie chart, full cost-allocation table     |
+| By App   | Per-application (or subsystem) cards with priority breakdowns    |
+| Priority | GB and units by tier, unit-multiplier detail table               |
+| Timeline | Daily GB and units trend lines *(only shown when CSV has dates)* |

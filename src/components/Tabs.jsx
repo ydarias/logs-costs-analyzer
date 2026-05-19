@@ -1,3 +1,4 @@
+import { useState, useEffect, memo } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid,
@@ -139,7 +140,63 @@ export function OverviewTab({ summary, priorityBreakdown, cost }) {
 
 // ── By App ──────────────────────────────────────────────────────────────────
 
-export function ByAppTab({ summary, groupBy, setGroupBy, cost }) {
+const CARD_STYLE = {
+  display: "grid",
+  gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
+  gap: 16,
+  alignItems: "center",
+};
+
+const PAGE_SIZE = 50;
+
+const GroupCard = memo(function GroupCard({ g, cost }) {
+  return (
+    <Card style={CARD_STYLE}>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+          {g.name}
+        </div>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {Object.entries(g.byPriority).map(([p, gb]) => (
+            <Pill
+              key={p}
+              label={`${p} ${fmtGB(gb)}`}
+              color={PRIORITY_COLORS[p] || THEME.muted}
+            />
+          ))}
+        </div>
+      </div>
+      <StatCell label="GB Ingested" value={fmtGB(g.gb)} />
+      <StatCell label="Share" value={`${(g.gbShare * 100).toFixed(2)}%`} />
+      <StatCell label="Billing Units" value={fmt(g.units, 3)} />
+      <div>
+        <div style={{ fontSize: 11, color: THEME.muted, marginBottom: 2 }}>
+          Est. Cost
+        </div>
+        <div
+          style={{
+            fontWeight: 800,
+            color: cost ? THEME.accent : THEME.muted,
+            fontSize: 16,
+          }}
+        >
+          {cost ? fmtUSD(g.cost) : "—"}
+        </div>
+      </div>
+    </Card>
+  );
+});
+
+export const ByAppTab = memo(function ByAppTab({ summary, groupBy, setGroupBy, cost }) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [groupBy]);
+
+  const visible = summary.groups.slice(0, visibleCount);
+  const remaining = summary.groups.length - visibleCount;
+
   return (
     <div>
       {/* Group-by toggle */}
@@ -173,53 +230,33 @@ export function ByAppTab({ summary, groupBy, setGroupBy, cost }) {
       </div>
 
       <div style={{ display: "grid", gap: 12 }}>
-        {summary.groups.map((g, i) => (
-          <Card
-            key={i}
-            style={{
-              display: "grid",
-              gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
-              gap: 16,
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
-                {g.name}
-              </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {Object.entries(g.byPriority).map(([p, gb]) => (
-                  <Pill
-                    key={p}
-                    label={`${p} ${fmtGB(gb)}`}
-                    color={PRIORITY_COLORS[p] || THEME.muted}
-                  />
-                ))}
-              </div>
-            </div>
-            <StatCell label="GB Ingested" value={fmtGB(g.gb)} />
-            <StatCell label="Share" value={`${(g.gbShare * 100).toFixed(2)}%`} />
-            <StatCell label="Billing Units" value={fmt(g.units, 3)} />
-            <div>
-              <div style={{ fontSize: 11, color: THEME.muted, marginBottom: 2 }}>
-                Est. Cost
-              </div>
-              <div
-                style={{
-                  fontWeight: 800,
-                  color: cost ? THEME.accent : THEME.muted,
-                  fontSize: 16,
-                }}
-              >
-                {cost ? fmtUSD(g.cost) : "—"}
-              </div>
-            </div>
-          </Card>
+        {visible.map((g) => (
+          <GroupCard key={g.name} g={g} cost={cost} />
         ))}
       </div>
+
+      {remaining > 0 && (
+        <button
+          onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+          style={{
+            marginTop: 16,
+            width: "100%",
+            padding: "10px 0",
+            background: "transparent",
+            border: `1px solid ${THEME.border}`,
+            borderRadius: 8,
+            color: THEME.muted,
+            cursor: "pointer",
+            fontSize: 13,
+            fontFamily: "inherit",
+          }}
+        >
+          Show {Math.min(remaining, PAGE_SIZE)} more ({remaining} remaining)
+        </button>
+      )}
     </div>
   );
-}
+});
 
 // ── Priority ─────────────────────────────────────────────────────────────────
 
