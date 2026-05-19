@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import { UNIT_WEIGHTS } from "./theme.js";
 
 /**
  * Normalise a CSV header to snake_case for fuzzy matching.
@@ -61,12 +62,18 @@ export function parseUsageCSV(text) {
   const prioCol  = detectColumn(headers, ["priority", "tier", "tco_priority", "priority_class"]);
   const dateCol  = detectColumn(headers, ["date", "day", "timestamp", "period"]);
 
-  return result.data.map((row) => ({
-    application: (appCol ? row[appCol] : "Unknown") ?? "Unknown",
-    subsystem:   (subCol ? row[subCol] : "")        ?? "",
-    gb:          parseFloat(gbCol   ? row[gbCol]   : 0) || 0,
-    units:       parseFloat(unitCol ? row[unitCol] : 0) || 0,
-    priority:    ((prioCol ? row[prioCol] : "HIGH") ?? "HIGH").toString().toUpperCase(),
-    date:        dateCol ? row[dateCol] : null,
-  }));
+  return result.data.map((row) => {
+    const priority = ((prioCol ? row[prioCol] : "HIGH") ?? "HIGH").toString().toUpperCase();
+    const gb       = parseFloat(gbCol ? row[gbCol] : 0) || 0;
+    const rawUnits = parseFloat(unitCol ? row[unitCol] : 0) || 0;
+    const units    = rawUnits || gb * (UNIT_WEIGHTS[priority] ?? 0);
+    return {
+      application: (appCol ? row[appCol] : "Unknown") ?? "Unknown",
+      subsystem:   (subCol ? row[subCol] : "")        ?? "",
+      gb,
+      units,
+      priority,
+      date: dateCol ? row[dateCol] : null,
+    };
+  });
 }

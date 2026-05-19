@@ -231,7 +231,7 @@ export default function App() {
             <Stat
               label="Invoice Cost"
               value={cost ? "$" + fmt(cost, 2) : "—"}
-              sub="enter above to unlock"
+              sub={cost ? "of monthly invoice" : "enter above to unlock"}
               accent={cost ? THEME.accent : THEME.muted}
             />
           </Card>
@@ -307,7 +307,7 @@ export default function App() {
           <ByAppTab summary={summary} groupBy={groupBy} setGroupBy={setGroupBy} cost={cost} />
         )}
         {tab === "priority" && (
-          <PriorityTab priorityBreakdown={priorityBreakdown} totalUnits={summary.totalUnits} />
+          <PriorityTab priorityBreakdown={priorityBreakdown} totalUnits={summary.totalUnits} cost={cost} />
         )}
         {tab === "timeline" && timeSeries.length > 0 && (
           <TimelineTab timeSeries={timeSeries} />

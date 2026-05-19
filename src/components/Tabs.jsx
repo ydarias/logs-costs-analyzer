@@ -115,7 +115,9 @@ export function OverviewTab({ summary, priorityBreakdown, cost }) {
                   {fmt(g.units, 3)}
                 </td>
                 <td style={{ padding: "10px 12px" }}>
-                  <MiniBar pct={g.unitShare} color={THEME.high} />
+                  {cost
+                    ? <MiniBar pct={g.unitShare} color={THEME.high} />
+                    : <span style={{ color: THEME.muted }}>—</span>}
                 </td>
                 <td
                   style={{
@@ -221,7 +223,7 @@ export function ByAppTab({ summary, groupBy, setGroupBy, cost }) {
 
 // ── Priority ─────────────────────────────────────────────────────────────────
 
-export function PriorityTab({ priorityBreakdown, totalUnits }) {
+export function PriorityTab({ priorityBreakdown, totalUnits, cost }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
       <Card>
@@ -275,7 +277,7 @@ export function PriorityTab({ priorityBreakdown, totalUnits }) {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: `1px solid ${THEME.border}` }}>
-              {["Priority Tier", "GB Ingested", "Unit Weight (per GB)", "Weighted Units", "Billing Impact"].map(
+              {["Priority Tier", "GB Ingested", "Unit Weight (per GB)", "Weighted Units", "Billing Impact", "Est. Cost (USD)"].map(
                 (h) => (
                   <th
                     key={h}
@@ -339,6 +341,15 @@ export function PriorityTab({ priorityBreakdown, totalUnits }) {
                       %
                     </span>
                   </div>
+                </td>
+                <td
+                  style={{
+                    padding: "10px 12px",
+                    fontWeight: 700,
+                    color: cost ? THEME.accent : THEME.muted,
+                  }}
+                >
+                  {totalUnits && cost ? fmtUSD((p.units / totalUnits) * cost) : "—"}
                 </td>
               </tr>
             ))}
