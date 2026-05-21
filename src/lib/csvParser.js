@@ -36,12 +36,13 @@ function detectColumn(headers, candidates) {
  *
  * @param {string} text - Raw CSV text
  * @returns {Array<{
- *   application: string,
- *   subsystem:   string,
- *   gb:          number,
- *   units:       number,
- *   priority:    string,
- *   date:        string|null
+ *   date:          string|null,
+ *   application:   string,
+ *   subsystem:     string,
+ *   severity:      string,
+ *   priority:      string,
+ *   amountGbSent:  number,
+ *   billingUnits:  number,
  * }>}
  */
 export function parseUsageCSV(text) {
@@ -55,25 +56,25 @@ export function parseUsageCSV(text) {
 
   const headers = Object.keys(result.data[0]);
 
-  const appCol   = detectColumn(headers, ["application", "application_name", "applicationname", "app"]);
-  const subCol   = detectColumn(headers, ["subsystem", "subsystem_name", "subsystemname"]);
-  const gbCol    = detectColumn(headers, ["gb", "gb_sent", "data_gb", "sent_gb", "bytes_gb", "gigabytes"]);
-  const unitCol  = detectColumn(headers, ["units", "units_used", "unit"]);
-  const prioCol  = detectColumn(headers, ["priority", "tier", "tco_priority", "priority_class"]);
-  const dateCol  = detectColumn(headers, ["date", "day", "timestamp", "period"]);
+  const appCol      = detectColumn(headers, ["application", "application_name", "applicationname", "app"]);
+  const subCol      = detectColumn(headers, ["subsystem", "subsystem_name", "subsystemname"]);
+  const gbCol       = detectColumn(headers, ["gb", "gb_sent", "data_gb", "sent_gb", "bytes_gb", "gigabytes"]);
+  const severityCol = detectColumn(headers, ["severity", "log_severity", "level"]);
+  const prioCol     = detectColumn(headers, ["priority", "tier", "tco_priority", "priority_class"]);
+  const dateCol     = detectColumn(headers, ["date", "day", "timestamp", "period"]);
 
   return result.data.map((row) => {
-    const priority = ((prioCol ? row[prioCol] : "HIGH") ?? "HIGH").toString().toUpperCase();
-    const gb       = parseFloat(gbCol ? row[gbCol] : 0) || 0;
-    const rawUnits = parseFloat(unitCol ? row[unitCol] : 0) || 0;
-    const units    = rawUnits || gb * (UNIT_WEIGHTS[priority] ?? 0);
+    const priority     = ((prioCol ? row[prioCol] : "HIGH") ?? "HIGH").toString().toUpperCase();
+    const amountGbSent = parseFloat(gbCol ? row[gbCol] : 0) || 0;
+    const billingUnits = amountGbSent * (UNIT_WEIGHTS[priority] ?? 0);
     return {
-      application: (appCol ? row[appCol] : "Unknown") ?? "Unknown",
-      subsystem:   (subCol ? row[subCol] : "")        ?? "",
-      gb,
-      units,
+      date:          dateCol     ? row[dateCol]     : null,
+      application:   (appCol     ? row[appCol]      : "Unknown") ?? "Unknown",
+      subsystem:     (subCol     ? row[subCol]      : "")        ?? "",
+      severity:      (severityCol ? row[severityCol] : "")       ?? "",
       priority,
-      date: dateCol ? row[dateCol] : null,
+      amountGbSent,
+      billingUnits,
     };
   });
 }

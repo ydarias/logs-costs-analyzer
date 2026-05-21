@@ -22,8 +22,8 @@ import { useMemo } from "react";
 export function useSummary({ rows, groupBy, totalCost }) {
   // Memo A: structural aggregation — stable while user types cost.
   const { totalGB, totalUnits, rawGroups } = useMemo(() => {
-    const totalGB    = rows.reduce((s, r) => s + r.gb, 0);
-    const totalUnits = rows.reduce((s, r) => s + r.units, 0);
+    const totalGB    = rows.reduce((s, r) => s + r.amountGbSent, 0);
+    const totalUnits = rows.reduce((s, r) => s + r.billingUnits, 0);
 
     const map = {};
     for (const r of rows) {
@@ -33,14 +33,14 @@ export function useSummary({ rows, groupBy, totalCost }) {
         : r.priority;
 
       if (!map[key]) map[key] = { name: key, gb: 0, units: 0, byPriority: {} };
-      map[key].gb    += r.gb;
-      map[key].units += r.units;
+      map[key].gb    += r.amountGbSent;
+      map[key].units += r.billingUnits;
       map[key].byPriority[r.priority] =
-        (map[key].byPriority[r.priority] || 0) + r.gb;
+        (map[key].byPriority[r.priority] || 0) + r.amountGbSent;
     }
 
     const rawGroups = Object.values(map)
-      .sort((a, b) => b.gb - a.gb)
+      .sort((a, b) => b.units - a.units)
       .map((g) => ({
         ...g,
         gbShare:   totalGB    ? g.gb    / totalGB    : 0,
@@ -78,8 +78,8 @@ export function usePriorityBreakdown({ rows, PRIORITY_COLORS, THEME }) {
     for (const r of rows) {
       if (!map[r.priority])
         map[r.priority] = { name: r.priority, gb: 0, units: 0 };
-      map[r.priority].gb    += r.gb;
-      map[r.priority].units += r.units;
+      map[r.priority].gb    += r.amountGbSent;
+      map[r.priority].units += r.billingUnits;
     }
     return Object.values(map)
       .sort((a, b) => b.gb - a.gb)
@@ -103,8 +103,8 @@ export function useTimeSeries({ rows }) {
     for (const r of dated) {
       const d = String(r.date).slice(0, 10);
       if (!map[d]) map[d] = { date: d, gb: 0, units: 0 };
-      map[d].gb    += r.gb;
-      map[d].units += r.units;
+      map[d].gb    += r.amountGbSent;
+      map[d].units += r.billingUnits;
     }
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [rows]);

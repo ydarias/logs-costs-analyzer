@@ -140,6 +140,8 @@ export function OverviewTab({ summary, priorityBreakdown, cost }) {
 
 // ── By App ──────────────────────────────────────────────────────────────────
 
+const PRIORITY_ORDER = ["HIGH", "MEDIUM", "LOW", "BLOCK", "METRICS"];
+
 const CARD_STYLE = {
   display: "grid",
   gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
@@ -157,17 +159,20 @@ const GroupCard = memo(function GroupCard({ g, cost }) {
           {g.name}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-          {Object.entries(g.byPriority).map(([p, gb]) => (
-            <Pill
-              key={p}
-              label={`${p} ${fmtGB(gb)}`}
-              color={PRIORITY_COLORS[p] || THEME.muted}
-            />
-          ))}
+          {Object.entries(g.byPriority).sort(([a], [b]) => PRIORITY_ORDER.indexOf(a) - PRIORITY_ORDER.indexOf(b)).map(([p, gb]) => {
+            const priorityUnits = gb * (UNIT_WEIGHTS[p] ?? 0);
+            const priorityCost = cost && g.units ? (priorityUnits / g.units) * g.cost : null;
+            const label = priorityCost != null
+              ? `${p} ${fmtGB(gb)} · ${fmtUSD(priorityCost)}`
+              : `${p} ${fmtGB(gb)}`;
+            return (
+              <Pill key={p} label={label} color={PRIORITY_COLORS[p] || THEME.muted} />
+            );
+          })}
         </div>
       </div>
       <StatCell label="GB Ingested" value={fmtGB(g.gb)} />
-      <StatCell label="Share" value={`${(g.gbShare * 100).toFixed(2)}%`} />
+      <StatCell label="Share" value={`${(g.unitShare * 100).toFixed(2)}%`} />
       <StatCell label="Billing Units" value={fmt(g.units, 3)} />
       <div>
         <div style={{ fontSize: 11, color: THEME.muted, marginBottom: 2 }}>
