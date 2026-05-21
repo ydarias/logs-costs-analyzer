@@ -40,7 +40,7 @@ export function useSummary({ rows, groupBy, totalCost }) {
     }
 
     const rawGroups = Object.values(map)
-      .sort((a, b) => b.gb - a.gb)
+      .sort((a, b) => b.units - a.units)
       .map((g) => ({
         ...g,
         gbShare:   totalGB    ? g.gb    / totalGB    : 0,
