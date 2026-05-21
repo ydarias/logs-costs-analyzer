@@ -10,10 +10,10 @@ export const fmt = (n, d = 2) =>
  * Format a number as a USD dollar amount with 4 decimal places.
  * @param {number} n
  */
-export const fmtUSD = (n) => "$" + fmt(n, 4);
+export const fmtUSD = (n) => "$" + fmt(n, 2);
 
 /**
  * Format a number as gigabytes with 3 decimal places.
  * @param {number} n
  */
-export const fmtGB = (n) => fmt(n, 3) + " GB";
+export const fmtGB = (n) => fmt(n, 2) + " GB";
